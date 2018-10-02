@@ -1,0 +1,78 @@
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+/**
+ * Servlet implementation class NormalSearch
+ */
+@WebServlet("/NormalSearch")
+public class NormalSearch extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public NormalSearch() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.getWriter().append("Served at: ").append(request.getContextPath());
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+	
+	//function to generate the MySQL search sentence segment in boolean mode full-text search
+	public static String tokenizer(String ori){
+		StringBuffer ori_b = new StringBuffer(ori);
+		for(int i=0;i<ori_b.length();i++) {
+			if(ori_b.charAt(i)=='+'||ori_b.charAt(i)=='-'||ori_b.charAt(i)=='~'||ori_b.charAt(i)=='?'
+					||ori_b.charAt(i)=='&'||ori_b.charAt(i)==':'||ori_b.charAt(i)=='.'||ori_b.charAt(i)=='@'
+					||ori_b.charAt(i)=='*'||ori_b.charAt(i)=='_'||ori_b.charAt(i)=='/') {
+				ori_b.setCharAt(i, ' ');
+			}
+		}
+		ori = ori_b.toString();
+		ori=ori.trim();
+		String [] s = new String[5];
+		s = ori.split("\\s+");
+		StringBuffer a = new StringBuffer();
+		for(int j=0;j<s.length;j++) {
+			if(s[j].length()<=2) {
+				a.append(s[j]).append("* ");
+			}else {
+				a.append("+").append(s[j]).append("* ");
+			}		
+		}
+		
+		String ftSearch = a.toString();
+		return ftSearch;
+	}
+
+}

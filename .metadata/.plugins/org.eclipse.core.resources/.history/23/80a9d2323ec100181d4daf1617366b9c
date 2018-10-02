@@ -1,0 +1,279 @@
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+/**
+ * Servlet implementation class Filter
+ */
+@WebServlet("/Filter")
+public class Filter extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public Filter() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//response.getWriter().append("Served at: ").append(request.getContextPath());
+		String loginUser = "mytestuser";
+		String loginPasswd = "mypassword";
+		String loginUrl = "jdbc:mysql://localhost:3306/moviedb?serverTimezone=UTC";
+		
+		response.setContentType("application/json"); // Response mime type
+		
+		// Output stream to STDOUT
+        PrintWriter out = response.getWriter();
+        
+		String yearL = request.getParameter("yearL");
+		String yearR = request.getParameter("yearR");
+		String ratingL = request.getParameter("ratingL");
+		String ratingR = request.getParameter("ratingR");
+		String[] genres = request.getParameterValues("genreSelection");
+		String director = request.getParameter("director");
+		String star = request.getParameter("star");
+		String sorting = request.getParameter("sorting");
+		String order = request.getParameter("order");
+	
+		JsonObject filterCondition = new JsonObject();
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT me.id, me.title, me.year, me.director, me.star, me.genre, COALESCE(ROUND(me.rating, 1), 0), me.starId ");
+		sb.append("FROM movies_extend AS me");
+		
+		//preprocess genres
+		if (genres != null && genres.length > 0) {
+			filterCondition.addProperty("genres", genresFilter(genres));
+			genresTable(genres, sb);
+		}
+		
+		sb.append(" WHERE ");
+		
+		//process year
+		if (yearL.equals("-") && yearR.equals("-")) {
+			sb.append("1 = 1 AND ");
+		}
+		else if (yearL.equals("-") && !yearR.equals("-")) {
+			filterCondition.addProperty("year", "2000 to " + yearR);
+			sb.append("me.year BETWEEN 2000 AND ");
+			sb.append(yearR);
+			sb.append(" AND ");
+		}
+		else if (!yearL.equals("-") && yearR.equals("-")) {
+			filterCondition.addProperty("year", "Since " + yearL);
+			sb.append("me.year >= ");
+			sb.append(yearL);
+			sb.append(" AND ");
+		}
+		else {
+			if (Integer.parseInt(yearL) == Integer.parseInt(yearR)) {
+				filterCondition.addProperty("year", "In " + yearL);
+				sb.append("me.year = ");
+				sb.append(Integer.parseInt(yearL));
+			}
+			else if (Integer.parseInt(yearL) < Integer.parseInt(yearR)) {
+				filterCondition.addProperty("year", yearL + " to " + yearR);
+				sb.append("me.year BETWEEN ");
+				sb.append(yearL);
+				sb.append(" AND ");
+				sb.append(yearR);
+			}
+			else {
+				filterCondition.addProperty("year", yearR + " to " + yearL);
+				sb.append("me.year BETWEEN");
+				sb.append(yearR);
+				sb.append(" AND ");
+				sb.append(yearL);
+			}
+			sb.append(" AND ");
+		}
+		
+		//process rating
+		if (ratingL.equals("-") && ratingR.equals("-")) {
+			sb.append("1 = 1 AND ");
+		}
+		else if (ratingL.equals("-") && !ratingR.equals("-")) {
+			filterCondition.addProperty("rating", "1.0 to " + ratingR);
+			sb.append("me.rating BETWEEN 1.0 AND ");
+			sb.append(ratingR);
+			sb.append(" AND ");
+		}
+		else if (!ratingL.equals("-") && ratingR.equals("-")) {
+			if (ratingL.equals("none")) {
+				filterCondition.addProperty("rating_nr", "Not Rated");
+				sb.append("me.rating IS NULL AND ");
+			}
+			else {
+				filterCondition.addProperty("rating", ratingL + " to 10.0");
+				sb.append("me.rating BETWEEN ");
+				sb.append(ratingL);
+				sb.append(" AND ");
+				sb.append("10.0 AND ");
+			}
+		}
+		else {
+			if (ratingL.equals("none")) {
+				filterCondition.addProperty("rating_nr", "Not Rated OR Scoring 1.0 to " + ratingR);
+				sb.append("me.rating IS NULL OR ");
+				sb.append("me.rating BETWEEN 1.0 AND ");
+				sb.append(ratingR);
+			}
+			else if (Float.parseFloat(ratingL) == Float.parseFloat(ratingR)) {
+				filterCondition.addProperty("rating", ratingL);
+				sb.append("me.rating = ");
+				sb.append(ratingL);
+			}
+			else if (Float.parseFloat(ratingL) < Float.parseFloat(ratingR)) {
+				filterCondition.addProperty("rating", ratingL + " to " + ratingR);
+				sb.append("me.rating BETWEEN ");
+				sb.append(ratingL);
+				sb.append(" AND ");
+				sb.append(ratingR);
+			}
+			else {
+				filterCondition.addProperty("rating", ratingR + " to " + ratingL);
+				sb.append("me.rating BETWEEN ");
+				sb.append(ratingR);
+				sb.append(" AND ");
+				sb.append(ratingL);
+			}
+			sb.append(" AND ");
+		}
+		
+		//process genres
+		if (genres != null && genres.length > 0) {
+			genresCondition(genres, sb);
+		}
+		else {
+			sb.append("1 = 1 AND ");
+		}
+		
+		//process director
+		if (director != null && !director.trim().isEmpty()) {
+			filterCondition.addProperty("director", director);
+			sb.append("me.director LIKE '%");
+			sb.append(director);
+			sb.append("%' AND ");
+		}
+		else {
+			sb.append("1 = 1 AND ");
+		}
+		
+		//process star
+		if (star != null && !star.trim().isEmpty()) {
+			filterCondition.addProperty("star", star);
+			sb.append("me.star LIKE '%");
+			sb.append(star);
+			sb.append("%' ");
+		}
+		else {
+			sb.append("1 = 1 ");
+		}
+		
+		sb.append("ORDER BY me.");
+		
+		//process sorting
+		if (order.equals("DESC")) {
+			sb.append(sorting);
+			sb.append(" DESC");
+		}
+		else {
+			sb.append(sorting);
+		}
+		
+		sb.append(";");
+		
+		String query = sb.toString();
+		System.out.println(query);
+		
+		try {
+			//Class.forName("org.gjt.mm.mysql.Driver");
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            
+            Connection connection = DriverManager.getConnection(loginUrl, loginUser, loginPasswd);
+            
+            // Declare our statement
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            
+            // Perform the query
+            ResultSet rs = statement.executeQuery(query);
+            
+            JsonArray movies = new JsonArray();
+            HandleResultSet.parseRS(rs, movies);
+            movies.add(filterCondition);
+            
+            System.out.println(movies);
+            out.write(movies.toString());
+            
+            rs.close();
+            statement.close();
+            connection.close();
+		} catch (Exception e) {
+        	out.println("<HTML>" + "<HEAD><TITLE>" + "MovieDB: Error" + "</TITLE></HEAD>\n<BODY>"
+                    + "<P>SQL error in doGet: " + e.getMessage() + "</P></BODY></HTML>");
+            return;
+        }
+		out.close();
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+	
+	private String genresFilter(String[] genres) {
+		StringBuilder genres_sb = new StringBuilder();
+		genres_sb.append(genres[0]);
+		for (int i = 1; i < genres.length; i++) {
+			genres_sb.append("-");
+			genres_sb.append(genres[i]);
+		}
+		return genres_sb.toString();
+	}
+	
+	private void genresTable(String[] genres, StringBuilder sb) {
+		for (int i = 0; i < genres.length; i++) {
+			sb.append(", (SELECT DISTINCT id FROM movies_genre_extend WHERE genre='");
+			sb.append(genres[i]);
+			sb.append("') AS tmp");
+			sb.append(i);
+		}
+	}
+	
+	private void genresCondition(String[] genres, StringBuilder sb) {
+		sb.append("me.id = tmp0.id");
+		for (int i = 1; i < genres.length; i++) {
+			sb.append(" AND tmp");
+			sb.append(i - 1);
+			sb.append(".id = tmp");
+			sb.append(i);
+			sb.append(".id");
+		}
+		sb.append(" AND ");
+	}
+
+}

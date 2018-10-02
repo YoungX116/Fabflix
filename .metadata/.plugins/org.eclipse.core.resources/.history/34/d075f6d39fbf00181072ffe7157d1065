@@ -1,0 +1,130 @@
+function handleMovieResult(resultData) {
+	console.log("handleMovieResult");
+	
+	let movieCardBodyElement = document.getElementById("movieinfobody");
+	
+	let	result = '<div class="row">' +
+			'<div class="col-sm"></div>' +
+			'<div class="col-sm-9 jumbotron py-3 rounded-0">' +			
+			'<div class="card mb-2">' +
+			'<div class="card-body pb-0">' +
+			'<div class="card-title d-flex">' +
+			'<ul class="mr-auto list-inline my-0">' +
+			'<li class="list-inline-item"><h5>' + resultData[0]["movie_title"] +  
+			'<small> (' + resultData[0]["movie_year"] + ')' + '</small></h5></li>' +
+			'</ul>' +
+			'<ul class="list-inline cartbtn my-0">' +
+				'<li class="list-inline-item">' +
+				'<button class="btn" style="background-color:transparent;" onclick="confirmation(this)" id="' + resultData[0]["movie_title"] + 
+				'"><i class="fa fa-plus-square"></i></button>' +
+				'</li>' +
+			'</ul>' +
+			'</div>' +
+			'<p class="card-text">' +
+			'<ul class="list-inline text-left my-0">' + 
+			'<li class="list-inline-item" title="rating"><p><i class="fa fa-star"></i> ';
+	
+	if (resultData[0]["movie_rating"] == 0) {
+		result += 'not rated';
+	}
+	else {
+		result += resultData[0]["movie_rating"].toFixed(1);
+	}
+	
+	result += '</p></li>' +
+		'<li class="list-inline-item"><p>|</p></li>' +
+		'<li class="list-inline-item" title="id"><p>' + resultData[0]["movie_id"] + '</p></li>' +
+		'<li class="list-inline-item"><p>|</p></li>' +
+		'<li class="list-inline-item" title="genre"><p>';
+	
+	let genre_list = '';
+	let genreLength = resultData[0]["movie_genres"].length;
+	for (let i = 0; i < genreLength - 1; i++) {
+		genre_list += resultData[0]["movie_genres"][i] + ', ';
+	}
+	genre_list += resultData[0]["movie_genres"][genreLength - 1];
+	
+	result += genre_list + '</p></li></ul>' +
+		'<ul class="list-inline text-left my-0">' +
+			'<li class="list-inline-item"><p><strong>Director:</strong> ' + resultData[0]["movie_director"] + '&nbsp;&nbsp;|&nbsp;&nbsp;<strong>Stars:</strong> ';
+	
+	let star_list = '';
+	let starLength = resultData[0]["movie_stars"].length;
+	for (let i = 0; i < starLength - 1; i++) {
+		star_list += '<a href="../StarPage/StarPage.html?star_id=' + resultData[0]["movie_stars"][i].split("+")[1] + '">' + 
+		resultData[0]["movie_stars"][i].split("+")[0] + ', ' + '</a>';
+	}
+	star_list += '<a href="../StarPage/StarPage.html?star_id=' + resultData[0]["movie_stars"][starLength - 1].split("+")[1] + '">' + 
+	resultData[0]["movie_stars"][starLength - 1].split("+")[0] + '</a>';
+	result += star_list	+ '</p></li></ul>';
+	
+	result += '<ul class="list-inline text-left my-0" id="detailsbody"></ul>';
+	
+	result += '</p></div></div></div><div class="col-sm"></div></div>';
+	
+	movieCardBodyElement.innerHTML = result;
+}
+
+var details = "";
+const API_KEY = 'f749e73212f30dc7424e9641180a9324';
+
+function getMovieInfo(movie_title) {
+	let imageUrl = "http://image.tmdb.org/t/p/w780";
+//	$.ajax({
+//		dataType: "json",
+//		method: "GET",
+//		data: "api_key=" + API_KEY,
+//		url: "https://api.themoviedb.org/3/configuration",
+//		success: function(json) {
+//			imageUrl += json.images.base_url + "w780";
+//		}
+//	});
+	
+	$.ajax({
+		dataType: "json",
+		method: "GET",
+		data: "api_key=" + API_KEY + "&query=" + movie_title,
+		url: "https://api.themoviedb.org/3/search/movie",
+		success: function(json) {
+			if (json.total_results < 1) {
+				details = "No details!";
+			} 
+			else if (json.results[0].title.toLowerCase() == movie_title.toLowerCase()) {
+				if (json.results[0].overview != "") {
+					details += '<ul class="list-inline text-left my-0">' +
+					  		   '<li class="list-inline-item"><p><strong>Overview:</strong> ' + json.results[0].overview + '</p></li></ul>';
+				}
+				
+				if (json.results[0].poster_path != null) {
+					imageUrl += json.results[0].poster_path;
+					details += '<ul class="list-inline text-left my-0">' +
+			  		'<li class="list-inline-item"><img src="' + imageUrl + '" class="img-fluid" alt="Responsive image"/></li></ul>';
+				}
+				
+				console.log("details: " + details);		 
+			}
+			else {
+				details = "No details!";
+			}
+			
+			document.getElementById("detailsbody").innerHTML = details;
+			
+		}
+	});
+}
+
+
+$(function(){
+	$.ajax({
+		dataType: "json",
+		method: "GET",
+		data: "movie_id=" + window.location.search.split("=")[1],
+		url: "/CS122B/MoviePage",
+		success: function(resultData) {
+			handleMovieResult(resultData);
+			getMovieInfo(resultData[0]["movie_title"]);
+		}
+	});
+	console.log("success submitted");
+	console.log("");
+});

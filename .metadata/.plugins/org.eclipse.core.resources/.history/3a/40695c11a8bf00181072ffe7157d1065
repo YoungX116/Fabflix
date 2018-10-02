@@ -1,0 +1,58 @@
+
+function handleResult(resultData) {
+	console.log("handleCartResult: populating cartinfo table from resultData");
+	
+	if (resultData != "" && resultData != null) {
+		console.log("not null");	
+	} 
+	
+	var cartTableBodyElement = jQuery("#shopping_cart");
+	for (var i = 0; i < resultData.length; i++) {
+		var rowHTML = "";
+		rowHTML += "<tr>";
+		rowHTML += "<th>" + resultData[i]["movie"] + "</th>";
+		rowHTML += "<th>" + resultData[i]["quantity"] + "</th>";
+		rowHTML += "<th><ul class='list-inline'>";
+		rowHTML += "<li class='list-inline-item'><button class='btn' style='background-color:transparent;' onclick='operation(this)' id='" +
+				resultData[i]["movie"] + "+" + "add" + "'>" +
+				"<i class='fa fa-plus-square'></i></button></li>";
+		
+		rowHTML += "<li class='list-inline-item'><button class='btn' style='background-color:transparent;' onclick='operation(this)' id='" +
+				resultData[i]["movie"] + "+" + "substract" + "'>" +
+				"<i class='fa fa-minus-square'></i></button></li>";
+		
+		rowHTML += "<li class='list-inline-item'><button class='btn' style='background-color:transparent;' onclick='operation(this)' id='" +
+				resultData[i]["movie"] + "+" + "delete" + "'>" +
+				"<i class='fas fa-trash-alt'></i></button></li>";
+		
+		rowHTML += "</ul></th></tr>"
+		cartTableBodyElement.append(rowHTML);
+	}
+	
+}
+
+
+function operation(item) {
+	jQuery.ajax({
+		dataType: "json",
+		method: "GET",
+		data: "item=" + item.id.split("+")[0] + "&process=" + item.id.split("+")[1], 
+		url: "/CS122B/CartProcessing",
+		success: (resultData) => handleResult(resultData)
+	}); 
+	//window.location.replace("../Cart/Cart.html");
+}
+
+
+$(function(){
+	$(".cart").on("click", false);
+	
+	jQuery.ajax({
+		  dataType: "json",
+		  method: "GET",
+		  url: "/CS122B/ShowCart",
+		  success: (resultData) => handleResult(resultData)
+	});
+	console.log("success submitted");
+	console.log("");
+});

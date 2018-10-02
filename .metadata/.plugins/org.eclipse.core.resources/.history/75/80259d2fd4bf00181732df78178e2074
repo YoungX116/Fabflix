@@ -1,0 +1,4 @@
+
+$(function(){
+	$(".home").on("click", false);
+});

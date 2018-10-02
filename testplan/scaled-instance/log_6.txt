@@ -1,0 +1,20 @@
+master:
+total queries: 15852
+total ts: 64101168091
+total tj: 31553130584
+average ts: 4043727.485
+average tj: 1990482.626
+
+
+
+slave:
+total queries: 10568
+total ts: 41900082491
+total tj: 20393612927
+average ts: 3964807.2
+average tj: 1929751.412
+
+overall:
+total queries: 26420
+average ts: 4012534.087
+average tj: 1966190.14

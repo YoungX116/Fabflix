@@ -1,0 +1,5 @@
+total queries: 26420
+total ts: 130083091487
+total tj: 25131176382
+average ts: 4923659.784
+average tj: 951217.88

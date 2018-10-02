@@ -1,0 +1,24 @@
+
+function handleResult(resultData){
+	console.log(resultData);
+	var userbody = document.getElementById("username");
+	var tmp = "<h4 class='welcome'>";
+	if (resultData["status"] == "success") {
+		tmp = "Welcome: " + resultData["user"] + "</h4>";
+		console.log(tmp);
+	}
+	userbody.innerHTML = tmp;
+}
+
+$(function(){
+	$(".home").on("click", false);
+	
+	jQuery.ajax({
+		  dataType: "json",
+		  method: "GET",
+		  url: "/CS122B/RetrieveUser",
+		  success: (resultData) => handleResult(resultData)
+	});
+	console.log("success submitted");
+	console.log("");
+});

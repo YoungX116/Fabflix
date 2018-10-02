@@ -1,0 +1,8 @@
+@charset "UTF-8";
+
+#success {
+    font-family: verdana;
+    Color: DarkGreen;
+    font-size: 30px;
+    text-align: center;
+}

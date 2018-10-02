@@ -1,0 +1,36 @@
+
+function handleResult(resultData) {
+	resultDataJson = JSON.parse(resultData);
+	
+	console.log("handle checkout response");
+	//console.log(resultData);
+
+	// if checkout success, then confirm
+	if (resultDataJson["status"] == "success"){
+		var lastname = resultDataJson["lastname"];
+	    var firstname = resultDataJson["firstname"];
+	   
+		
+	} else {
+		console.log("show error message");
+		console.log(resultDataJson["message"]);
+		jQuery("#login_error_message").alert("Wrong Information, please try again!");
+	}
+}
+
+function submitForm(formSubmitEvent) {
+	console.log("submit form");
+	
+	// important: disable the default action of submitting the form
+	//   which will cause the page to refresh
+	//   see jQuery reference for details: https://api.jquery.com/submit/
+	formSubmitEvent.preventDefault();
+		
+	jQuery.post(
+		"/CS122B/Checkout", 
+		// serialize the login form to the data sent by POST request
+		jQuery("#checkout_form").serialize(),
+		(resultData) => handleResult(resultData));
+}
+
+jQuery("#checkout_form").submit((event) => submitForm(event));

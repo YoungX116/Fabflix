@@ -1,0 +1,151 @@
+@charset "UTF-8";
+
+html {
+    overflow-y: scroll;
+}
+
+body {
+	background-color: White;
+}
+
+h1 {
+	font-size: 3rem;
+	font-weight: bold;
+}
+
+.dropdown:hover > .movies {
+	color: White;
+    background-color: #343a40;
+}
+
+.dropdown > .dropdown-menu {
+	display: none;
+    position: absolute;
+    background-color: #f8f9fa;
+    border: 1px solid LightGrey;
+    z-index: 1;
+    padding: 0;
+}
+
+.dropright > .dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: #f8f9fa;
+    border: 1px solid LightGrey;
+    z-index: 1;
+    padding: 0;
+    max-height: 30rem;
+	overflow: auto;
+}
+
+.dropdown-menu > a {
+    color: Black;
+    padding-left: 0.5rem;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.droplist {
+	width: 10.5rem;
+}
+
+ul > li {
+	padding-left: 0.25rem;
+	padding-right: 0.25rem;
+}
+
+.list-inline > li > a {
+	width: 1rem;
+	padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+}
+
+.list-inline > li > a:hover, 
+.list-inline > li > a:focus {
+	color: Tomato;
+	text-decoration: underline;
+	background-color: #f8f9fa;
+}
+ 
+.dropdown-menu > .dropright:hover {
+	background-color: #ddd;
+}
+
+.dropdown-menu > a:hover,
+.dropdown-menu > a:focus {
+	color: Tomato;
+	text-decoration: underline;
+	background-color: #f8f9fa;
+}
+
+.dropdown:hover > .dropdown-menu,
+.dropright:hover > .dropdown-menu {
+    display: block;
+}
+
+.genrebtn, .titlebtn {
+    font-size: 1rem;    
+    border: none;
+    outline: none;
+    color: Black;
+    background-color: inherit;
+    padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+}
+
+.genrebtn:focus, 
+.titlebtn:focus {
+	border: none;
+    outline: none;
+}
+
+.fa-shopping-cart {
+	font-size: 1.8rem;
+}
+
+.form-control {
+	font-size: 1.25rem;
+	padding: 0.25rem 0.5rem;
+}
+
+.form-control input[type="search"] {
+	-webkit-box-shadow: none;
+    outline: -webkit-focus-ring-color auto 0px;
+}
+
+.form-control:focus {
+	box-shadow: none;
+	-webkit-box-shadow: none;
+    outline: -webkit-focus-ring-color auto 0px;
+}
+
+.input-group {
+	margin-top: 12em;
+}
+
+.btn {
+	background-color: Gold;
+}
+
+.btn:hover,
+.btn:focus {
+	background-color: Goldenrod;
+	box-shadow: none;
+}
+
+.cartbtn > li > a{
+	color: Gray;
+}
+
+.cartbtn > li > a:hover,
+.cartbtn > li > a:focus {
+	color: Black;
+	background-color: inherit;
+	border: none;
+    outline: none;
+}
+
+.fa-plus-square, .fa-minus-square, .fa-trash {
+	font-size: 1.5rem;
+}
+
+

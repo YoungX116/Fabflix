@@ -1,0 +1,53 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * do normal full text search if no suggestion is selected 
+ */
+function handleNormalSearch(query) {
+	console.log("doing normal search with query: " + query);
+	// TODO: you should do normal search here
+	jQuery.ajax({
+		"method": "GET",
+		// generate the request url from the query.
+		// escape the query string to avoid errors caused by special characters 
+		"url": "NormalSearch?query=" + escape(query),
+		"success": function(data) {
+			// pass the data, query, and doneCallback function into the success handler
+			handleSearchResult(data)
+		},
+		"error": function(errorData) {
+			console.log("lookup ajax error")
+			console.log(errorData)
+		}
+	})	
+}
+
+
+function EnterPress(e){   
+    var e = e || window.event;   
+    if (e.keyCode == 13) {   
+	    console.log("press the enter key");
+	    handleNormalSearch($('#autocomplete').val());
+    }   
+}  
+
+$(function(){
+	$(".home").on("click", false);
+});

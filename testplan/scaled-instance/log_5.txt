@@ -1,0 +1,22 @@
+master:
+total queries: 13210
+total ts: 26229323854
+total tj: 2196085546
+average ts: 1985565.772
+average tj: 166244.175
+
+
+
+slave:
+total queries: 13210
+total ts: 26363096914
+total tj: 2270579453
+average ts: 1995692.423
+average tj: 171883.38
+
+
+
+overall:
+total queries: 26420
+average ts: 1990629.098
+average tj: 169063.7775

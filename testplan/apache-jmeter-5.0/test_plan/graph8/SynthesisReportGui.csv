@@ -1,0 +1,4 @@
+sampler_label,aggregate_report_count,average,aggregate_report_min,aggregate_report_max,aggregate_report_90%_line,aggregate_report_stddev,aggregate_report_error%,aggregate_report_rate,aggregate_report_bandwidth,average_bytes
+Login,10,281,241,360,349,45.46658113383946,0.0,1.081782778018174,0.3327749756598875,315.0
+Query,26420,168,151,3333,223,69.48073144752814,0.0,58.3017035925501,60.39853516487002,1060.8283497350492
+TOTAL,26430,168,151,3333,224,69.5082875389635,0.0,58.323770853561655,60.40532343363822,1060.546159667045

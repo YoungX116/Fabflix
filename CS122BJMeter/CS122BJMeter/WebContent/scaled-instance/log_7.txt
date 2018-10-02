@@ -1,0 +1,6 @@
+slave:
+total queries: 2642
+total ts: 5307661049
+total tj: 419738659
+average ts: 2008955.734
+average tj: 158871.559

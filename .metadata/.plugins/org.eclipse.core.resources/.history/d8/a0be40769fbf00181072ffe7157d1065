@@ -1,0 +1,92 @@
+@charset "UTF-8";
+
+.home {
+	font-size: 1.25rem;    
+    border: none;
+    outline: none;
+    color: Black;
+    background-color: inherit;
+    padding: 0.5rem 0.5rem;
+}
+
+.home:hover, .home:focus {
+	color: White;
+    background-color: #343a40;
+}
+
+.movies {
+	font-size: 1.25rem;    
+    border: none;
+    outline: none;
+    color: Black;
+    background-color: inherit;
+    padding: 0.5rem 0.5rem;
+}
+
+.movies:hover, .movies:focus {
+	color: White;
+    background-color: #343a40;
+}
+
+.filter {
+	font-size: 1.25rem;    
+    border: none;
+    outline: none;
+    color: Black;
+    background-color: inherit;
+    
+}
+
+.filter:hover, .filter:focus {
+	color: White;
+	background-color: #343a40;
+}
+
+.cart {
+	color: #343a40;
+}
+
+.cart:hover {
+	color: White;
+	background-color: #343a40;
+}
+
+.sorttext {
+	font-size: 1rem;   
+    border: none;
+    outline: none;
+    background-color: inherit;
+}
+
+.sorttext > li > a:hover,
+.sorttext > li > a:focus {
+	color: Tomato;
+	text-decoration: underline;
+	background-color: inherit;
+	border: none;
+    outline: none;
+}
+
+.pagetext > li > a:hover,
+.pagetext > li > a:focus {
+	color: Tomato;
+	text-decoration: underline;
+	background-color: inherit;
+	border: none;
+    outline: none;
+}
+
+#waitingMessage {
+	border: none; 
+    padding: 1rem; 
+    font-size: 1.3rem;
+    background-color: Black;
+    opacity: .5; 
+    color: White;
+}
+
+.adding:hover,
+.adding:focus {
+	background-color: red;
+	box-shadow: none;
+}

@@ -1,0 +1,48 @@
+@charset "UTF-8";
+
+body {
+	background-color: Black;
+}
+
+h1 {
+	font-size: 4.25rem;
+	font-weight: bold;
+}
+
+.jumbotron {  
+    font-size: 1.25rem;
+}
+
+.form-control:focus {
+	box-shadow: none;
+}
+
+input[type="email"],
+input[type="password"] {
+	font-size: 1.25rem;
+	padding: 0.25rem 0.5rem;
+}
+
+.btn {
+	background-color: OrangeRed;
+	color: White;
+	font-size: 1.25rem;
+	padding: 0.25rem auto;
+}
+
+.btn:hover,
+.btn:focus {
+	background-color: Tomato;
+	box-shadow: none;
+}
+
+.error_user, .error_pwd {
+	color: Red;
+	font-size: 1rem;
+	padding-bottom: 0.5rem;
+	padding-left: 0;
+}
+
+.test {
+	color: white;
+}

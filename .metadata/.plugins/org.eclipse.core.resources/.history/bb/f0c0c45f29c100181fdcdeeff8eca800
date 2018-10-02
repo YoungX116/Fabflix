@@ -1,0 +1,108 @@
+@charset "UTF-8";
+
+.home {
+	font-size: 1.25rem;    
+    border: none;
+    outline: none;
+    color: Black;
+    background-color: inherit;
+    padding: 0.5rem 0.5rem;
+}
+
+.home:hover, .home:focus {
+	color: White;
+    background-color: #343a40;
+}
+
+.movies {
+	font-size: 1.25rem;    
+    border: none;
+    outline: none;
+    color: Black;
+    background-color: inherit;
+    padding: 0.5rem 0.5rem;
+}
+
+.movies:hover, .movies:focus {
+	color: White;
+    background-color: #343a40;
+}
+
+.filter, .filter:hover, .filter:focus {
+	font-size: 1.25rem;    
+    border: none;
+    outline: none;
+    color: Black;
+    opacity: .5;
+    background-color: inherit;
+    padding: 0.5rem 0.5rem;
+}
+
+.cart {
+	color: #343a40;
+}
+
+.cart:hover {
+	color: White;
+	background-color: #343a40;
+}
+
+.label {
+	font-size: 1.25rem;
+	font-weight: bold;
+	color: Sienna;
+}
+
+.filtercondition {
+	width: 25%;
+	border: 1px solid Black;
+}
+
+.filtercondition:focus {
+	border: 1px solid DeepSkyBlue;
+}
+
+input[type="text"] {
+	font-size: 1rem;
+	padding: 0.1rem 0.25rem;
+}
+
+.message {
+	font-style: italic;
+}
+
+tr > td {
+	padding: 0rem 0.25rem 0rem 0.25rem;
+}
+
+.resetbtn {
+	background: White;
+	color: Sienna;
+	font-size: 1.25rem;
+	font-weight: bold;
+	width: 10rem;
+	border: 1px solid Black;
+	padding: 0.1rem 0.25rem;
+}
+
+.resetbtn:hover,
+.resetbtn:focus {
+	background-color: #f8f9fa;
+	box-shadow: none;
+}
+
+.filterbtn {
+	background: Gold;
+	color: Sienna;
+	font-size: 1.25rem;
+	font-weight: bold;
+	width: 25rem;
+	border: 1px solid Black;
+	padding: 0.1rem 0.25rem;
+}
+
+.filterbtn:hover,
+.filterbtn:focus {
+	background-color: Goldenrod;
+	box-shadow: none;
+}

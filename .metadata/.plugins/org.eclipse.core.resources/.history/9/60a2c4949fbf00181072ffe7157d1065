@@ -1,0 +1,533 @@
+var responseResult = "";
+var movielistStatus = ""; //control movie list source(from browse or filter)
+
+function handleMovieResult(resultData) {
+	responseResult = resultData;
+	console.log("handleMovieResult: populating movieinfo table from resultData");
+	
+	let movieTableBodyElement = document.getElementById("movielistbody");
+	let result = "";
+	if (resultData.length > 1) {
+		console.log("not null");	 
+	
+		length = resultData.length - 1;
+		console.log(length);
+		
+		let headline = "";
+		if (movielistStatus == "caseBrowse") {
+			headline = generateBrowsingHead(headline);
+		}
+		else {
+			headline = generateFilterHead(headline, resultData[resultData.length - 1]);
+		}
+			
+		result = '<div class="row">' +
+			'<div class="col-sm"></div>' +
+			'<div class="col-sm-9 jumbotron py-3 rounded-0">' +
+				'<h3 class="text-center mt-3 mb-4">' + 
+				headline + '</h3>' +
+				'<div>' +
+					'<ul class="sorttext list-inline text-left mb-0">' + 
+						'<li class="list-inline-item"><p>Sort by :</p></li>' + 
+						'<li class="list-inline-item"><a class="sorttext px-0" id="sorttitle" href="javascript:void(0)" onclick="sort(\'title\')">';
+		if (sorting == 'title') {
+			if (order == 'ASC') {result += 'Alphabetical▲';}
+			else {result += 'Alphabetical▼';}	
+		} else {result += 'Alphabetical'};
+		
+		result += '</a></li>' +
+			'<li class="list-inline-item"><p>|</p></li>' +
+			'<li class="list-inline-item"><a class="sorttext px-0" id="sortyear" href="javascript:void(0)" onclick="sort(\'year\')">';
+		
+		if (sorting == 'year') {
+			if (order == 'ASC') {result += 'Released Year▲';}
+			else {result += 'Released Year▼';}	
+		} else {result += 'Released Year'};
+		
+		result += '</a></li>' +
+			'<li class="list-inline-item"><p>|</p></li>' + 
+			'<li class="list-inline-item"><a class="sorttext px-0" id="sortrating" href="javascript:void(0)" onclick="sort(\'rating\')">';
+		
+		if (sorting == 'rating') {
+			if (order == 'ASC') {result += 'Rating▲';}
+			else {result += 'Rating▼';}	
+		} else {result += 'Rating'};
+		
+		result += '</a></li></ul></div><div id="resultpage">';
+		
+		console.log('call handlePagination');
+		result += handlePagination(resultData);
+	
+		result += '</div></div><div class="col-sm"></div></div>';
+	}
+	else {
+		result = '<div class="row"><div class="col-sm"></div>' +
+			'<div class="col-sm-9 jumbotron py-3 rounded-0">' +
+			'<h3 class="text-center mt-3 mb-4">Sorry, no results!</h3></div>' +
+			'<div class="col-sm"></div></div>';
+	}
+	//console.log(result);
+	movieTableBodyElement.innerHTML = result;
+}
+
+
+function generateBrowsingHead(headline) {
+	if (genre_content.length > 0) {
+		headline += genre_content + ' Movies';
+	}
+	else {
+		headline += 'Movies With Title Starting With ' + capital_content;
+	}
+	
+	if (sorting == 'rating') {
+		if (order == 'ASC') {headline = 'Lowest Rated ' + headline;}
+		else {headline = 'Highest Rated ' + headline;}
+	}
+	else if (sorting == 'year') {
+		if (order == 'ASC') {headline = 'Earliest ' + headline;}
+		else {headline = 'Latest ' + headline;}
+	}
+	else {
+		if (order == 'ASC') {headline += ' (Sort By Title, ASC)';}
+		else {headline += ' (Sort By Title, DESC)';}
+	}
+	return headline;
+}
+
+
+function generateFilterHead(headline, filterCondition) {
+	if (filterCondition.hasOwnProperty("genres")) {
+		headline += filterCondition.genres + ' ';
+	}
+	
+	headline += 'Movies ';
+	
+	if (filterCondition.hasOwnProperty("title")) {
+		headline += 'With Title Matching ' + filterCondition.title + ' AND';
+	}
+	
+	if (filterCondition.hasOwnProperty("year")) {
+		headline += 'Released ' + filterCondition.year + ' AND';
+	}
+	
+	if (filterCondition.hasOwnProperty("rating")) {
+		headline += 'Scoring ' + filterCondition.rating + ' AND';
+	}
+	
+	if (filterCondition.hasOwnProperty("rating_nr")) {
+		headline += filterCondition.rating + ' AND';
+	}
+	
+	if (filterCondition.hasOwnProperty("director")) {
+		headline += 'Directed By ' + filterCondition.director + ' AND';
+	}
+	
+	if (filterCondition.hasOwnProperty("star")) {
+		headline += filterCondition.star + ' Acted In';
+	}
+	
+	if (headline.endsWith('AND')) {
+		headline = headline.substring(0, headline.length - 3);
+	}
+
+	if (sorting == 'rating') {
+		if (order == 'ASC') {headline = 'Lowest Rated ' + headline;}
+		else {headline = 'Highest Rated ' + headline;}
+	}
+	else if (sorting == 'year') {
+		if (order == 'ASC') {headline = 'Earliest ' + headline;}
+		else {headline = 'Latest ' + headline;}
+	}
+	else {
+		if (order == 'ASC') {headline += ' (Sort By Title, ASC)';}
+		else {headline += ' (Sort By Title, DESC)';}
+	}
+	
+	return headline;
+}
+
+
+var sorting = "rating";
+var order = "DESC";
+var flag_order = true;
+var genre_content = "";
+var capital_content = "";
+
+function sort(param) {
+	console.log("sort()");
+	sorting = param;
+	console.log(sorting);
+	
+	if (flag_order) {
+		order = "ASC";
+		flag_order = false;
+	}
+	else {
+		order = "DESC";
+		flag_order = true;
+	}
+	
+	console.log("capital_content=" + capital_content);
+	console.log("genre_content=" + genre_content);
+	
+	if (movielistStatus == "caseBrowse") {
+		$(".movies").css("color", "Gray");
+		
+		const timeout = setTimeout(function() {
+			$.blockUI({ message: $('#waitingMessage') }); 
+		}, 1500);
+		
+		$.ajax({
+			dataType: "json",
+			method: "GET",
+			data: "capital=" + capital_content + "&genre=" + genre_content + "&sorting=" + sorting + "&order=" + order,
+			url: "/CS122B/Browse",
+			complete: function() {
+				clearTimeout(timeout);
+				$.unblockUI();
+			},
+			success: (resultData) => handleMovieResult(resultData)
+		});
+	}
+	else if (movielistStatus == "caseFilter") {
+		const timeout = setTimeout(function() {
+			$.blockUI({ message: $('#waitingMessage') }); 
+		}, 1500);
+		
+		$.ajax({
+			dataType: "json",
+			method: "GET",
+			data: window.location.search.substring(1) + "&sorting=" + sorting + "&order=" + order,
+			url: "/CS122B/Filter",
+			complete: function() {
+				clearTimeout(timeout);
+				$.unblockUI();
+			},
+			success: (resultData) => handleMovieResult(resultData)
+		});
+	}
+
+	/*
+	$.ajax({
+		dataType: "json",
+		method: "GET",
+		data: "capital=" + capital_content + "&genre=" + genre_content + "&sorting=" + sorting + "&order=" + order,
+		url: "/CS122B/Browse",
+		success: (resultData) => handleMovieResult(resultData)
+	});
+	*/
+	console.log("success submitted");
+	console.log("");
+}
+
+
+var length = 0;
+var start = 1;
+var end = 20;
+var itemsPerPage = 20;
+
+function generatePagination(param) {
+	console.log("generatePagination(param)");
+	console.log("");
+	
+	if (length <= 20) {
+		start = 1, end = length, itemsPerPage = 'all';
+	}
+	console.log(start + ' ' + end + ' ' + itemsPerPage);
+	
+	let pagination = '<div><ul class="pagetext list-inline text-left mb-0">' +
+			'<li class="list-inline-item"><p>' + start + ' to ' + end + ' of ' + length + ' results</p></li>' +
+			'<li class="list-inline-item"><p>|</p></li>' +
+			'<li class="list-inline-item"><p>Show ';
+	
+	if (param == "top") {
+		pagination += '<select id="item_top" name="item_top" onchange=updateItemsPerPage("top")>';
+	}
+	else {
+		pagination += '<select id="item_bot" name="item_bot" onchange=updateItemsPerPage("bottom")>';
+	}	
+	
+	if (length <= 20) {
+		pagination += '<option value="20" disabled>20</option>' +
+			'<option value="50" disabled>50</option>' +
+			'<option value="all" selected="selected">all</option>' +
+			'</select> results</p></li>';
+	}
+	else if (length > 20 && length <= 50) {
+		if (itemsPerPage == 20) {
+			pagination += '<option value="20" selected="selected">20</option>' +
+				'<option value="50" disabled>50</option>' +
+				'<option value="all">all</option>' +
+				'</select> results per page</p></li>';
+		}
+		else {
+			pagination += '<option value="20">20</option>' +
+				'<option value="50" disabled>50</option>' +
+				'<option value="all" selected="selected">all</option>' +
+				'</select> results</p></li>';
+		}
+	}
+	else {
+		if (itemsPerPage == 20) {
+			pagination += '<option value="20" selected="selected">20</option>' +
+				'<option value="50">50</option>' +
+				'<option value="all">all</option>' +
+				'</select> results per page</p></li>';
+		}
+		else if (itemsPerPage == 50) {
+			pagination += '<option value="20">20</option>' +
+				'<option value="50" selected="selected">50</option>' +
+				'<option value="all">all</option>' +
+				'</select> results per page</p></li>';
+		}
+		else {
+			pagination += '<option value="20">20</option>' +
+				'<option value="50">50</option>' +
+				'<option value="all" selected="selected">all</option>' +
+				'</select> results</p></li>';
+		}
+	}
+	
+	if (start != 1) {
+		pagination += '<li class="list-inline-item"><p>|</p></li>' +
+			'<li class="list-inline-item">' + 
+			'<a class="px-0" id="previous" href="javascript:void(0)" onclick="updatePage(0)">' +
+			'&laquo;Previous</a></li>';
+	}
+	if (end != length) {
+		pagination += '<li class="list-inline-item"><p>|</p></li>' + 
+			'<li class="list-inline-item">' + 
+			'<a class="px-0" id="next" href="javascript:void(0)" onclick="updatePage(1)">' +
+			'Next&raquo;</a></li>';
+	}
+	
+	pagination += '</ul></div>'
+		
+	return pagination;
+}
+
+
+function handlePagination(resultData) {
+	console.log("handlePagination(resultData)");
+	console.log("");
+	
+	let resultsPerPage = generatePagination("top");
+	
+	for (let i = start - 1; i < end; i++) {
+		resultsPerPage += '<div class="card mb-2">' +
+			'<div class="card-body pb-0">' +
+			'<div class="card-title d-flex">' +
+			'<ul class="mr-auto list-inline my-0">' +
+				'<li class="list-inline-item"><h5>' + (i + 1) + '. ' + 
+				'<a href="../MoviePage/MoviePage.html?movie_id=' + resultData[i]["movie_id"] + '">' + resultData[i]["movie_title"] + '</a><small>' + 
+				' (' + resultData[i]["movie_year"] + ')' + '</small></h5></li>' +
+				'</ul>' +
+				'<ul class="list-inline cartbtn my-0">' +
+					'<li class="list-inline-item">' +
+					'<button class="btn adding" style="background-color:transparent;" onclick="confirmation(this)" id="' + resultData[i]["movie_title"] + '"><i class="fa fa-plus-square"></i></button>' +
+					'</li>' +
+				'</ul>' +
+				'</div>' +
+		'<p class="card-text">' +
+			'<ul class="list-inline text-left my-0">' + 
+				'<li class="list-inline-item" title="rating"><p><i class="fa fa-star"></i> ';
+		
+		if (resultData[i]["movie_rating"] == 0) {
+			resultsPerPage += 'not rated';
+		}
+		else {
+			resultsPerPage += resultData[i]["movie_rating"].toFixed(1);
+		}
+		
+		resultsPerPage += '</p></li>' +
+			'<li class="list-inline-item"><p>|</p></li>' +
+			'<li class="list-inline-item" title="id"><p>' + resultData[i]["movie_id"] + '</p></li>' +
+			'<li class="list-inline-item"><p>|</p></li>' +
+			'<li class="list-inline-item" title="genre"><p>';
+		
+		let genre_list = '';
+		let genreLength = resultData[i]["movie_genres"].length;
+		for (let j = 0; j < genreLength - 1; j++) {
+			genre_list += resultData[i]["movie_genres"][j] + ', ';
+		}
+		genre_list += resultData[i]["movie_genres"][genreLength - 1];
+		
+		resultsPerPage += genre_list + '</p></li></ul>' +
+			'<ul class="list-inline text-left my-0">' +
+				'<li class="list-inline-item"><p><strong>Director:</strong> ' + resultData[i]["movie_director"] + '&nbsp;&nbsp;|&nbsp;&nbsp;<strong>Stars:</strong> ';
+		
+		let star_list = '';
+		let starLength = resultData[i]["movie_stars"].length;
+		for (let j = 0; j < starLength - 1; j++) {
+			star_list += '<a href="../StarPage/StarPage.html?star_id=' + resultData[i]["movie_stars"][j].split("+")[1] + '">' + 
+			resultData[i]["movie_stars"][j].split("+")[0] + ', ' + '</a>';
+		}
+		star_list += '<a href="../StarPage/StarPage.html?star_id=' + resultData[i]["movie_stars"][starLength - 1].split("+")[1] + '">' + 
+		resultData[i]["movie_stars"][starLength - 1].split("+")[0] + '</a>';
+    				
+		resultsPerPage += star_list	+ '</p></li></ul></p></div></div>';
+	}
+	
+	if (itemsPerPage != 'all') {
+		resultsPerPage += generatePagination("bottom");
+	} 
+	
+	return resultsPerPage;
+}
+
+function confirmation(item) {
+	var msg = confirm("Add this movie to the shopping cart?");
+	if (msg == true) {
+		alert("success!")
+		jQuery.ajax({
+			  dataType: "json",
+			  method: "GET",
+			  data: "item=" + item.id,
+			  url: "/CS122B/AddToCart",
+		});
+	} 
+}
+
+
+function updateItemsPerPage(param) {
+	console.log("updateItemsPerPage()");
+	console.log("");
+	
+	if (param == "top") {
+		itemsPerPage = document.getElementById("item_top").value;
+	}
+	else {
+		itemsPerPage = document.getElementById("item_bot").value;
+	}
+	
+	if (itemsPerPage == 20) {
+		start = 1, end = 20;
+	}
+	else if (itemsPerPage == 50) {
+		start = 1, end = 50;
+	}
+	else {
+		start = 1, end = length;
+	}
+	document.getElementById("resultpage").innerHTML = handlePagination(responseResult);
+}
+
+
+function updatePage(state) {
+	console.log("updatePage()");
+	
+	let increment = parseInt(itemsPerPage);
+	if (state == 0) {
+		end = start - 1, start -= increment;
+	}
+	else {
+		start = start + increment;
+		end = (end + increment < length) ? (end + increment) : length;
+	}
+	console.log(start + " " + end);
+	console.log("");
+	document.getElementById("resultpage").innerHTML = handlePagination(responseResult);
+}
+
+
+function handleURL() {
+	console.log("handleURL()");
+	
+	let url = window.location.search;
+	console.log(url);
+	
+	if (url != "" && url != null) {
+		let param = url.split("&");
+		if (param.length == 2) {
+			capital_content = param[0].split("=")[1];
+			genre_content = param[1].split("=")[1];
+			
+			console.log("capital_content=" + capital_content);
+			console.log("genre_content=" + genre_content);
+			console.log("");
+			
+			movielistStatus = "caseBrowse";
+		}
+		else {
+			movielistStatus = "caseFilter";
+		}
+	}
+}
+
+
+$(function(){
+	if (document.URL.endsWith("Home.html")) {
+		$(".home").css("color", "Black");
+		$(".home").css("opacity", ".5");
+		$(".home").on("click", false);
+	}
+	else {
+		$(".home").hover(function(){
+			$(this).css("background-color", "#343a40");
+			$(this).css("color", "White");
+        	}, function(){
+            $(this).css("background-color", "inherit");
+            $(this).css("color", "Black");
+		});
+	}
+	
+	handleURL();
+	
+	if (movielistStatus == "caseBrowse") {
+		$(".movies").css("color", "Black");
+		$(".movies").css("opacity", ".5");
+		$(".movies").hover(function() {
+			$(this).css("background-color", "#343a40");
+			$(this).css("color", "White");
+			$(".movies").css("opacity", "1");
+			}, function() {
+			$(this).css("background-color", "inherit");
+            $(this).css("color", "Black");	
+            $(this).css("opacity", ".5");
+		});
+		
+		
+		
+		const timeout = setTimeout(function() {
+			$.blockUI({ message: $('#waitingMessage') }); 
+		}, 1500);
+		
+		$.ajax({
+			dataType: "json",
+			method: "GET",
+			data: "capital=" + capital_content + "&genre=" + genre_content + "&sorting=" + sorting + "&order=" + order,
+			url: "/CS122B/Browse",
+			complete: function() {
+				clearTimeout(timeout);
+				$.unblockUI();
+			},
+			success: function(resultData) {
+				start = 1, end = 20, itemsPerPage = 20;
+				handleMovieResult(resultData);
+			}
+		});
+	}
+	else if (movielistStatus == "caseFilter") {
+		const timeout = setTimeout(function() {
+			$.blockUI({ message: $('#waitingMessage') }); 
+		}, 1500);
+		
+		$.ajax({
+			dataType: "json",
+			method: "GET",
+			data: window.location.search.substring(1) + "&sorting=" + sorting + "&order=" + order,
+			url: "/CS122B/Filter",
+			complete: function() {
+				clearTimeout(timeout);
+				$.unblockUI();
+			},
+			success: function(resultData) {
+				start = 1, end = 20, itemsPerPage = 20;
+				handleMovieResult(resultData);						
+			}
+		});
+	}
+	
+	console.log("success submitted");
+	console.log("");
+});

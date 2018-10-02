@@ -1,0 +1,33 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function EnterPress(e){   
+    var e = e || window.event;   
+    if (e.keyCode == 13) {   
+	    console.log("press the enter key");
+	    handleNormalSearch($('#autocomplete').val());
+    }   
+}  
+
+$(function(){
+	$(".home").on("click", false);
+});

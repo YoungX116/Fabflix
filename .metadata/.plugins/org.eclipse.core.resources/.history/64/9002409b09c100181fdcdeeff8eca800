@@ -1,0 +1,13 @@
+
+$(function(){
+	$(".home").on("click", false);
+	
+	jQuery.ajax({
+		  dataType: "json",
+		  method: "GET",
+		  url: "/CS122B/RetrieveUser",
+		  success: (resultData) => handleResult(resultData)
+	});
+	console.log("success submitted");
+	console.log("");
+});

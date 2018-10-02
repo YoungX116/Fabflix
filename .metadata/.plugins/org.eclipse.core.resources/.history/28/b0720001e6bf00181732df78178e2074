@@ -1,0 +1,158 @@
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+/**
+ * Servlet implementation class NormalSearch
+ */
+@WebServlet("/NormalSearch")
+public class NormalSearch extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public NormalSearch() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		String loginUser = "mytestuser";
+        String loginPasswd = "mypassword";
+        String loginUrl = "jdbc:mysql://localhost:3306/moviedb?serverTimezone=UTC";
+				
+        response.setContentType("application/json");
+		PrintWriter out = response.getWriter();
+		 
+		String query = request.getParameter("query");
+		 
+		String ftSearch = tokenizer(query);
+		 		 
+		 try {
+	            Class.forName("com.mysql.jdbc.Driver").newInstance();
+	            Connection connection = DriverManager.getConnection(loginUrl, loginUser, loginPasswd);
+	    
+	            
+	            // create the mysql search sentence, use logic "OR"(UNION) to combine the results of full-text search and fuzzy search. 
+	            StringBuffer mysql_sen = new StringBuffer();
+	            mysql_sen.append("SELECT * from movies where match(title) against (\'"+ ftSearch + "\' in boolean mode) OR ");
+	            
+            
+	            // deal with fuzzy search here combining the full-text search            
+	            mysql_sen.append(fuzzySearchMovies(tokenizer_fuzzy(query)));
+	            
+	            //execute the search query and get results
+	            String mysql_query = mysql_sen.toString();
+	            Statement stmt1 = connection.createStatement();
+	            System.out.print(mysql_query);
+	            ResultSet rs1 = stmt1.executeQuery(mysql_query);
+	                      
+	            
+	            JsonArray jsonArray = new JsonArray();
+	            
+	            while (rs1.next()) {
+	            	String movieId = rs1.getString(1);
+	            	
+	            	PreparedStatement pstmt2 = connection.prepareStatement("SELECT stars.id,stars.name from stars,stars_in_movies where stars_in_movies.movieId=? and stars_in_movies.starId=stars.id");
+	            	pstmt2.setString(1, movieId);
+	            	ResultSet rs2 = pstmt2.executeQuery();
+	            	String movie_stars = "<ul>";
+	            	while (rs2.next()) {
+	            		String star_li = "<li><a href=\"../starpage/starpage.html?&star_name=" 
+	            				+ rs2.getString(2) + "&id="
+	            				+ rs2.getString(1) + "\">"
+	            				+ rs2.getString(2) + "</a></li>";
+	            		movie_stars = add(movie_stars, star_li);
+	            	}
+	            	movie_stars = add(movie_stars, "</ul>");
+	            	
+	            	
+	            	PreparedStatement pstmt3 = connection.prepareStatement("SELECT genres.id,genres.name from genres,genres_in_movies where genres_in_movies.movieId=? and genres_in_movies.genreId=genres.id");
+	            	pstmt3.setString(1, movieId);
+	            	ResultSet rs3 = pstmt3.executeQuery();
+	            	String movie_genres = "<ul>";
+	            	while (rs3.next()) {
+	            		String genres_li = "<li>" + rs3.getString(2) + "</li>";
+	            				
+	            		movie_genres = add(movie_genres, genres_li);
+	            	}
+	            	movie_genres = add(movie_genres, "</ul>");
+	            	
+	            	       	
+
+	            	JsonObject jsonObject = new JsonObject();
+	                jsonObject.addProperty("movie_id", rs1.getString(1));
+	                jsonObject.addProperty("movie_title", rs1.getString(2));
+	                jsonObject.addProperty("movie_year", rs1.getInt(3));
+	                jsonObject.addProperty("movie_director", rs1.getString(4));
+	                jsonObject.addProperty("movie_genres", movie_genres);
+	                jsonObject.addProperty("movie_stars", movie_stars);
+	                
+	                jsonArray.add(jsonObject);
+	                System.out.println(jsonObject);
+	            }
+	            System.out.print("the json obj has been generated");
+	            //System.out.println(jsonArray);
+	            out.write(jsonArray.toString());
+	            rs1.close();
+	            stmt1.close();
+	            return;
+		 }catch(Exception e) {
+	            out.println("<HTML>" + "<HEAD><TITLE>" + "FullTestSearch: Error" + "</TITLE></HEAD><BODY>"
+	                    + "<P>SQL error in doGet: " + e.getMessage() + "</P></BODY></HTML>");
+	            return;
+			 
+		 }
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+	
+	//function to generate the MySQL search sentence segment in boolean mode full-text search
+	public static String tokenizer(String original){
+		String[] tmp = new String[5];
+		tmp = original.replaceAll("(\\W)", " ").trim().split("\\s+");
+		for (String i : tmp) {
+			System.out.print(i + " ");
+		}
+		System.out.println(" ");
+		
+		StringBuffer ft = new StringBuffer();
+		for(int i=0; i<tmp.length; i++) {
+			if(tmp[i].length() <= 2) {
+				ft.append(tmp[i]).append("* ");
+			} else {
+				ft.append("+").append(tmp[i]).append("* ");
+			}		
+		}
+		
+		String ftSearch = ft.toString();
+		return ftSearch;
+	}
+
+}

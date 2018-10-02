@@ -1,0 +1,134 @@
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.*;
+import java.util.HashMap;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+/**
+ * Servlet implementation class SearchSuggestion
+ */
+@WebServlet("/SearchSuggestion")
+public class SearchSuggestion extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public SearchSuggestion() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+    
+    /*
+     * 
+     * Match the query against Marvel and DC heros and return a JSON response.
+     * 
+     * For example, if the query is "super":
+     * The JSON response look like this:
+     * [
+     * 	{ "value": "Superman", "data": { "category": "dc", "heroID": 101 } },
+     * 	{ "value": "Supergirl", "data": { "category": "dc", "heroID": 113 } }
+     * ]
+     * 
+     * The format is like this because it can be directly used by the 
+     *   JSON auto complete library this example is using. So that you don't have to convert the format.
+     *   
+     * The response contains a list of suggestions.
+     * In each suggestion object, the "value" is the item string shown in the dropdown list,
+     *   the "data" object can contain any additional information.
+     * 
+     * 
+     */
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		String loginUser = "mytestuser";
+        String loginPasswd = "mypassword";
+        String loginUrl = "jdbc:mysql://localhost:3306/moviedb?serverTimezone=UTC";
+		
+        // Output stream to STDOUT
+        PrintWriter out = response.getWriter();
+        
+        String query = request.getParameter("query");
+		 
+        String ftSearch = HandleTokenizer.tokenizer(query);
+        
+        try {
+        	Class.forName("com.mysql.jdbc.Driver").newInstance();
+            Connection connection = DriverManager.getConnection(loginUrl, loginUser, loginPasswd);
+
+			//PreparedStatement search = null;
+			//String searchMovie = null;
+			//String searchStar = null;
+			
+			StringBuffer searchMovie = new StringBuffer();
+			StringBuffer searchStar = new StringBuffer();
+			Statement search = connection.createStatement(); 
+			
+			// get full-text search sentence use "OR" to connect the full-text search and fuzzy search
+			searchMovie.append("SELECT * FROM movies WHERE MATCH(titleIndex) AGAINST (\'"+ ftSearch + "\' IN BOOLEAN MODE);");
+			searchStar.append("SELECT * FROM stars WHERE MATCH(nameIndex) AGAINST (\'"+ ftSearch + "\' IN BOOLEAN MODE);");
+
+		
+			JsonArray jsonArray = new JsonArray();
+			
+			// return the empty json array if query is null or empty
+			if (query == null || query.trim().isEmpty()) {
+				response.getWriter().write(jsonArray.toString());
+				return;
+			}	
+		
+			search = connection.createStatement();
+			ResultSet rs1 = search.executeQuery(searchMovie.toString());
+			
+			while (rs1.next()) {
+				String id = rs1.getString(1);
+				String result = rs1.getString(2);
+				jsonArray.add(generateJsonObject(result, "movie", id));
+			}
+			
+			search = connection.createStatement();
+			ResultSet rs2 = search.executeQuery(searchStar.toString());
+			
+			
+			while (rs2.next()) {
+				String id = rs2.getString(1);
+				String result = rs2.getString(2);
+				jsonArray.add(generateJsonObject(result, "star", id));
+			}
+			
+			while (jsonArray.size()>10) {
+				jsonArray.remove(jsonArray.size()-1);
+			}
+			
+			System.out.println(jsonArray.toString());
+			response.getWriter().write(jsonArray.toString());
+			return;
+		} catch (Exception e) {
+			System.out.println(e);
+			response.sendError(500, e.getMessage());
+		}
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}

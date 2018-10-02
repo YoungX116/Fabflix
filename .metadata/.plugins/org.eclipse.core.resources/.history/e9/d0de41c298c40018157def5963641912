@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/TomcatTest">
+
+	<Resource name="jdbc/TestDB" auth="Container" type="javax.sql.DataSource"
+		maxTotal="100" maxIdle="30" maxWaitMillis="10000" username="mytestuser"
+		password="mypassword" driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://localhost:3306/moviedb?autoReconnect=true&amp;useSSL=false&amp;cachePrepStmts=true" />
+	
+	<Resource name="jdbc/masterDB" auth="Container" type="javax.sql.DataSource"
+		maxTotal="100" maxIdle="30" maxWaitMillis="10000" username="repl"
+		password="slavepassword" driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://172.31.12.107:3306/moviedb?autoReconnect=true&amp;useSSL=false&amp;cachePrepStmts=true" />
+</Context>

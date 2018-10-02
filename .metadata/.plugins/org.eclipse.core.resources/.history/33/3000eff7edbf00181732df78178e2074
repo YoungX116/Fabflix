@@ -1,0 +1,125 @@
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+/**
+ * Servlet implementation class NormalSearch
+ */
+@WebServlet("/NormalSearch")
+public class NormalSearch extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public NormalSearch() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		String loginUser = "mytestuser";
+        String loginPasswd = "mypassword";
+        String loginUrl = "jdbc:mysql://localhost:3306/moviedb?serverTimezone=UTC";
+				
+        response.setContentType("application/json");
+		PrintWriter out = response.getWriter();
+		 
+		String original = request.getParameter("query");
+		String sorting = request.getParameter("sorting");
+		String order = request.getParameter("order");	 
+		String ftSearch = tokenizer(original);
+		
+		String orderBy = "";
+        if (order.equals("DESC")) {
+        	orderBy = sorting + " DESC";
+        }
+        else {
+        	orderBy = sorting;
+        }
+        
+        String query = "SELECT me.id, me.title, me.year, me.director, me.star, me.genre, COALESCE(ROUND(me.rating, 1), 0), me.starId " +
+        			"FROM movies_extend AS me WHERE MATCH(titleIndex) AGAINST (\'"+ ftSearch + "\' IN BOOLEAN MODE) ORDER BY me." + orderBy + ";";
+        System.out.println(query);
+				 		 
+		 try {
+	            Class.forName("com.mysql.jdbc.Driver").newInstance();
+	            Connection connection = DriverManager.getConnection(loginUrl, loginUser, loginPasswd);
+	    
+	            
+	            // create the mysql search sentence, use logic "OR"(UNION) to combine the results of full-text search and fuzzy search. 
+	            
+            
+	            // Declare our statement
+	            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+	            
+	            // Perform the query
+	            ResultSet rs = statement.executeQuery(query);
+	            
+	            JsonArray movies = new JsonArray();
+	            HandleResultSet.parseRS(rs, movies);
+	            
+	            System.out.println(movies);
+	            out.write(movies.toString());
+	            
+	            rs.close();
+	            statement.close();
+	            connection.close();
+		 } catch(Exception e) {
+	            out.println("<HTML>" + "<HEAD><TITLE>" + "FullTestSearch: Error" + "</TITLE></HEAD><BODY>"
+	                    + "<P>SQL error in doGet: " + e.getMessage() + "</P></BODY></HTML>");
+	            return;	 
+		 }
+		 out.close();
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+	
+	//function to generate the MySQL search sentence segment in boolean mode full-text search
+	public static String tokenizer(String original){
+		String[] tmp = new String[5];
+		tmp = original.replaceAll("(\\W)", " ").trim().split("\\s+");
+		for (String i : tmp) {
+			System.out.print(i + " ");
+		}
+		System.out.println(" ");
+		
+		StringBuffer ft = new StringBuffer();
+		for(int i=0; i<tmp.length; i++) {
+			if(tmp[i].length() <= 2) {
+				ft.append(tmp[i]).append("* ");
+			} else {
+				ft.append("+").append(tmp[i]).append("* ");
+			}		
+		}
+		
+		String ftSearch = ft.toString();
+		return ftSearch;
+	}
+
+}

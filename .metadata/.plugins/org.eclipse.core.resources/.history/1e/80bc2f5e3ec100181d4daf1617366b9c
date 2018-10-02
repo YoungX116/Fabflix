@@ -1,0 +1,137 @@
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+
+//import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+/**
+ * Servlet implementation class Login
+ */
+@WebServlet("/Login")
+public class Login extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public Login() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//response.getWriter().append("Served at: ").append(request.getContextPath());
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+//		String loginUser = "mytestuser";
+//		String loginPasswd = "mypassword";
+//		String loginUrl = "jdbc:mysql://localhost:3306/moviedb?serverTimezone=UTC";
+		
+		// Output stream to STDOUT
+        PrintWriter out = response.getWriter();
+        
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+        
+        String query = "SELECT email, password FROM customers WHERE email='" + email + "' OR password='" + password + "';";
+        //System.out.println(query);
+        
+        try {
+        	Context initCtx = new InitialContext();
+			if (initCtx == null)
+                out.println("initCtx is NULL");
+			
+			Context envCtx = (Context) initCtx.lookup("java:comp/env");
+			if (envCtx == null)
+                out.println("envCtx is NULL");
+			
+			// Look up our data source
+            DataSource ds = (DataSource) envCtx.lookup("jdbc/TestDB");
+            
+            //the following commented lines are direct connections without pooling
+            //Class.forName("org.gjt.mm.mysql.Driver");
+            //Class.forName("com.mysql.jdbc.Driver").newInstance();         
+            //Connection connection = DriverManager.getConnection(loginUrl, loginUser, loginPasswd);
+            
+            if (ds == null)
+                out.println("ds is null.");
+            
+            Connection dbcon = ds.getConnection();
+            if (dbcon == null)
+                out.println("dbcon is null.");
+            
+            // Declare statement
+            Statement statement = connection.createStatement();
+            String query = "SELECT email, password FROM customers WHERE email='" + email + "' OR password='" + password + "';";
+            //System.out.println(query);
+            
+            // Perform the query
+            ResultSet rs = statement.executeQuery(query);
+            
+            JsonObject responseJsonObject = new JsonObject();
+            
+            // set this user into the session
+			request.getSession().setAttribute("user", new User(email));
+            
+			boolean user_exist = false; // assume the input email not exists
+            while (rs.next()) {
+            	String rs_email = rs.getString(1);
+            	String rs_password = rs.getString(2);
+
+            	// user exists
+            	if (rs_email.equals(email)) {
+            		user_exist = true;
+            		
+            		// login success
+            		if (rs_password.equals(password)) {
+            			responseJsonObject.addProperty("status", "success");
+            			responseJsonObject.addProperty("message", "success");
+            		} else {
+            			responseJsonObject.addProperty("status", "error_pwd");
+            			responseJsonObject.addProperty("message", "Incorrect password, please try again!");
+            		}	
+            	}  			
+            }
+            
+            // user does not exist
+            if (!user_exist) {
+            	responseJsonObject.addProperty("status", "error_user");
+            	responseJsonObject.addProperty("message", "User doesn't exist!");
+            }
+            
+            out.write(responseJsonObject.toString());
+            
+            rs.close();
+            statement.close();
+            connection.close();
+        } catch (Exception e) {
+        	out.println("<HTML>" + "<HEAD><TITLE>" + "Login: Error" + "</TITLE></HEAD>\n<BODY>"
+                    + "<P>SQL error in doPost: " + e.getMessage() + "</P></BODY></HTML>");
+            return;
+        }
+        out.close();
+	}
+}

@@ -1,0 +1,38 @@
+@charset "UTF-8";
+
+.autocomplete-suggestions {
+	background-color: white;
+	border: 1;
+	box-sizing: border-box;
+	border-color:Gold;
+	border-style: solid;
+	border-width: 1px;
+	outline:none;
+	padding-top: 0px;
+	padding-left: 0px;
+	text-indent: 5px;
+    text-align: left;
+    text-decoration: none;
+    Color: black;
+    display: inline-block;
+    font-size: 17px;
+    height: 15em;
+}
+
+.autocomplete-selected {
+	background: Lavender;
+}
+
+.autocomplete-suggestions strong {
+	font-weight: bold;
+	color: DeepSkyBlue;
+}
+
+.autocomplete-group { 
+	background-color: Gold;
+	padding: 0px 0px; 
+	text-align: left;
+    Color: black;
+    font-size: 20px;
+    font-style:italic;
+}
